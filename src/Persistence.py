@@ -47,12 +47,7 @@ def compute_persistence(matrix: np.matrix):
     i=0
     for j in range(collumns):
         lowOf.append(low(matrix=matrix, collumn=j))
-        try:
-            if(j%int(collumns/100) == 0):
-                print(str(i)+"%")
-                i += 1
-        except:
-            continue
+        print(str(j*100/collumns)+"%")
 
 
         done: bool = False
@@ -113,7 +108,7 @@ def generate_H0_Barcode(matrix: np.matrix, filtration: list[set], threshold_dict
 
     for j in range(collumns):
         collumn_low: int = low(matrix=matrix, collumn=j)
-        if(collumn_low >= 0):
+        if(collumn_low >= 0 and len(filtration[collumn_low])==1):
             start.append(threshold_dict[collumn_low])
             end.append(threshold_dict[j])
             homology.append(threshold_dict[j])
@@ -124,6 +119,30 @@ def generate_H0_Barcode(matrix: np.matrix, filtration: list[set], threshold_dict
     # Add labels and title
     plt.xlabel('Threshold')
     plt.ylabel('H_0')
+    plt.yticks([])
+    plt.title(title)
+    plt.show()
+
+def generate_H1_Barcode(matrix: np.matrix, filtration: list[set], threshold_dict: dict, title:str = "Persistence Barcode"):
+    plt.close()
+    collumns: int = matrix.shape[1]
+    start: list = [0]
+    end: list = [inf]
+    homology: list = [-1]
+
+    for j in range(collumns):
+        collumn_low: int = low(matrix=matrix, collumn=j)
+        if(collumn_low >= 0 and len(filtration[collumn_low])==2):
+            start.append(threshold_dict[collumn_low])
+            end.append(threshold_dict[j])
+            homology.append(threshold_dict[j])
+
+    # Plot persistence barcode
+    plt.barh(homology, end, left=start, height=.5)
+
+    # Add labels and title
+    plt.xlabel('Threshold')
+    plt.ylabel('H_1')
     plt.yticks([])
     plt.title(title)
     plt.show()
