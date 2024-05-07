@@ -3,7 +3,7 @@ from Edge import Edge
 from Vertex import Vertex
 import random as R
 
-def parse_graph(source: str) -> Graph:
+def parse_graph(source: str,width: int) -> Graph:
     vertices: list[Vertex] = []
     edges: list[Edge] = []  
 
@@ -21,9 +21,9 @@ def parse_graph(source: str) -> Graph:
 
             if(len(data) > 1):
                 if(position == "Sinks"):
-                    vertices.append(Vertex(id=data[1],label=data[0], type="SINK"))
+                    vertices.append(Vertex(id=data[1],label=data[0], type="SINK", width=width))
                 elif(position == "Sources"):
-                    vertices.append(Vertex(id=data[1],label=data[0], type="SOURCE"))
+                    vertices.append(Vertex(id=data[1],label=data[0], type="SOURCE", width=width))
             
     # with open(source+"Sinks.csv", "r", newline='') as file:
     #     next(file)
@@ -58,10 +58,10 @@ def parse_graph(source: str) -> Graph:
             v1: Vertex = next(filter(lambda v: v.label == data[0], vertices), None)
             v2: Vertex = next(filter(lambda v: v.label == data[1], vertices), None)
             if(not v1):
-                v1 = Vertex(id="", label=data[0], type="NONE")
+                v1 = Vertex(id="", label=data[0], type="NONE", width=width)
                 vertices.append(v1)
             if(not v2):
-                v2 = Vertex(id="", label=data[1], type="NONE")
+                v2 = Vertex(id="", label=data[1], type="NONE", width=width)
                 vertices.append(v2)
 
             weight: float = float(data[2])
@@ -116,5 +116,8 @@ def parse_graph(source: str) -> Graph:
     #             edges.append(edge)
 
     #TODO: Create Graph
+
+    vertices = list(set(vertices))
+    edges = list(set(edges))
 
     return Graph(vertices=vertices, edges=edges)

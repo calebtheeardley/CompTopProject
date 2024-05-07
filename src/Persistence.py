@@ -1,3 +1,4 @@
+from cmath import inf
 import numpy as np
 # import matplotlib
 import matplotlib.pyplot as plt
@@ -66,8 +67,8 @@ def compute_persistence(matrix: np.matrix):
             else:
                 j2 += 1
 
-def generate_persistence_diagram(matrix:np.matrix):
-    # plt.ion()
+def generate_persistence_diagram(matrix:np.matrix, threshold_dict: dict, title: str="Persistence Diagram"):
+    plt.close()
     collumns: int = matrix.shape[1]
 
     x: list[int] = []
@@ -76,17 +77,53 @@ def generate_persistence_diagram(matrix:np.matrix):
     for j in range(collumns):
         collumn_low: int = low(matrix=matrix, collumn=j)
         if(collumn_low >= 0):
-            x.append(collumn_low)
-            y.append(j)
+            x.append(threshold_dict[collumn_low])
+            y.append(threshold_dict[j])
+
+    points = list(zip(x, y))
+    unique_points = set(points)
+    counts = [points.count(p) for p in unique_points]
+
+    # Plot scatter plot with circles around replicated points
+    plt.figure(figsize=(8, 6))
+
+    for p, count in zip(unique_points, counts):
+        if count > 1:
+            circle = plt.Circle(p, count * 0.01, color='red', fill=False)
+            plt.gca().add_patch(circle)
 
     plt.scatter(x,y)
     
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.title('Scatter Plot of X, Y Points')
-    plt.xlim(0, collumns-1)  # Example for setting x-axis limits
-    plt.ylim(0, collumns-1)
+    plt.xlabel('Birth')
+    plt.ylabel('Death')
+    plt.title(title)
+    # plt.xlim(0, max(x))  # Example for setting x-axis limits
+    # plt.ylim(0, max(x))
     # plt.xticks(np.arange(0, collumns-1, 1))  # Set tick positions at integers from 0 to 4
     # plt.yticks(np.arange(0, collumns-1, 1))
 
+    plt.show()
+
+def generate_H0_Barcode(matrix: np.matrix, filtration: list[set], threshold_dict: dict, title:str = "Persistence Barcode"):
+    plt.close()
+    collumns: int = matrix.shape[1]
+    start: list = [0]
+    end: list = [inf]
+    homology: list = [-1]
+
+    for j in range(collumns):
+        collumn_low: int = low(matrix=matrix, collumn=j)
+        if(collumn_low >= 0):
+            start.append(threshold_dict[collumn_low])
+            end.append(threshold_dict[j])
+            homology.append(threshold_dict[j])
+
+    # Plot persistence barcode
+    plt.barh(homology, end, left=start, height=3)
+
+    # Add labels and title
+    plt.xlabel('Threshold')
+    plt.ylabel('H_0')
+    plt.yticks([])
+    plt.title(title)
     plt.show()
