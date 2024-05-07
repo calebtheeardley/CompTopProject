@@ -84,7 +84,7 @@ def generate_persistence_diagram(matrix:np.matrix, threshold_dict: dict, title: 
 
     for p, count in zip(unique_points, counts):
         if count > 1:
-            circle = plt.Circle(p, count * 0.01, color='red', fill=False)
+            circle = plt.Circle(p, count * 0.03, color='red', fill=False)
             plt.gca().add_patch(circle)
 
     plt.scatter(x,y)
