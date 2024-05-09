@@ -8,7 +8,7 @@ def maxWeight(graph: Graph) -> float:
     return max_edge.weight
 
 
-def vietros_rips_filtration_0_1(graph: Graph, div:int = 4, path: str = "none" ) -> tuple[list[set],dict]:
+def vietros_rips_filtration(graph: Graph, div:int = 4, path: str = "none" ) -> tuple[list[set],dict]:
     print("filtering")
     filtration: list[set] = []
     threshold_dict: dict = {}
@@ -18,10 +18,14 @@ def vietros_rips_filtration_0_1(graph: Graph, div:int = 4, path: str = "none" ) 
 
     i = 0
     stepsize = 1
-    for threshold in range(0,max,stepsize):
-        if(threshold%int(max/100) == 0):
-            print(str(i)+"%")
-            i += 1
+    threshold = 0
+
+    while(threshold <= max):
+
+        fsize = len(F.edges)+len(F.vertices)
+        gsize = len(graph.edges)+len(graph.vertices)
+        percent_done = fsize*100/gsize
+        print(str(percent_done)+"%")
 
         for edge in graph.edges:
             if(edge.weight <= threshold) :
@@ -36,75 +40,41 @@ def vietros_rips_filtration_0_1(graph: Graph, div:int = 4, path: str = "none" ) 
             simplex0: set = set([vertex])
             if(simplex0 not in filtration):
                 filtration.append(simplex0)
-                threshold_dict[len(filtration)] = threshold
+                threshold_dict[len(filtration)-1] = threshold
         
         for edge in F.edges:
             simplex1: set = set([edge.vertices[0], edge.vertices[1]])
             if(simplex1 not in filtration):
                 filtration.append(simplex1)
-                threshold_dict[len(filtration)] = threshold
-
-        division: int = (max//div)
-        if(threshold%division < stepsize or threshold == 1):
-            if(path != "none"):
-                F.save(path+str(threshold)+".png", "threshold = "+str(threshold))
-
-    F.save(path+str(max)+".png", "threshold = "+str(threshold))
-
-    return (filtration, threshold_dict)
-
-def vietros_rips_filtration_0_1_2(graph: Graph) -> list[set]:
-    print("filtering")
-    filtration: list[set] = []
-
-    F: Graph = Graph([],[])
-    max = int(maxWeight(graph=graph))
-
-    i = 0
-    for threshold in range(0,max,int(max/100)):
-        if(threshold%int(max/100) == 0):
-            print(str(i)+"%")
-            i += 1
-
-        for edge in graph.edges:
-            if(edge.weight <= threshold) :
-                F.edges.append(edge)
-                F.vertices.append(edge.vertices[0])
-                F.vertices.append(edge.vertices[1])
-
-        F.vertices = list(set(F.vertices))
-        F.edges = list(set(F.edges))
-
-        for vertex in F.vertices:
-            simplex0: set = set([vertex])
-            if(simplex0 not in filtration):
-                filtration.append(simplex0)
-        
-        for edge in F.edges:
-            simplex1: set = set([edge.vertices[0], edge.vertices[1]])
-            if(simplex1 not in filtration):
-                filtration.append(simplex1)
+                threshold_dict[len(filtration)-1] = threshold
+                
 
         for edge in F.edges:
             v1 = edge.vertices[0]
             v2 = edge.vertices[1]
             
-
             for v3 in F.vertices:
-                if(v1 != v3 and v2 != v3):
+                if(v1 in v3.neighbors and v2 in v3.neighbors):
                     edge1_3 = next(filter(lambda edge: set(edge.vertices) == set([v1,v3]), F.edges), None)
                     edge2_3 = next(filter(lambda edge: set(edge.vertices) == set([v2,v3]), F.edges), None)
                     if(edge1_3 and edge2_3):
                         simplex2: set = set([v1,v2,v3])
                         if(simplex2 not in filtration):
                             filtration.append(simplex2)
+                            threshold_dict[len(filtration)-1] = threshold
+                        
+        threshold += stepsize
+        division: int = (max//div)
+        if(threshold%division < stepsize or threshold == 1):
+            if(path != "none"):
+                F.save(path+str(threshold)+".png", "threshold = "+str(threshold))
 
+    for i in range(len(filtration)+1):
+        if(i not in threshold_dict):
+            threshold_dict[i] = threshold_dict[i-1]
 
-        # quarter_point: int = (max//4)
-        # if(threshold%quarter_point <= int(max/100)):
-        #     F.print()
+    return (filtration, threshold_dict)
 
-    return filtration
 
 def my_filtration_source(graph: Graph, path: str="none") -> tuple[list[set], dict]:
     sources: list[Vertex] = []
@@ -123,16 +93,16 @@ def my_filtration_source(graph: Graph, path: str="none") -> tuple[list[set], dic
         threshold_dict[i] = 0
 
     threshold = 1
-    stepsize = 3
+    stepsize = 1
     repeats = 0
     percent_done = 0
     
-    while(len(F.vertices) < len(graph.vertices) and percent_done < 97):
+    while(len(F.vertices) < len(graph.vertices) and (percent_done < 97 or repeats > 5)):
         
         fsize = len(F.edges)+len(F.vertices)
         gsize = len(graph.edges)+len(graph.vertices)
         percent_done = fsize*100/gsize
-        print(str(fsize*100/gsize)+"%")
+        print(str(percent_done)+"%")
 
         startsize: int = len(filtration)
         for source in sources:
@@ -153,35 +123,28 @@ def my_filtration_source(graph: Graph, path: str="none") -> tuple[list[set], dic
             simplex0: set = set([vertex])
             if(simplex0 not in filtration):
                 filtration.append(simplex0)
-                threshold_dict[len(filtration)] = threshold
+                threshold_dict[len(filtration)-1] = threshold
    
 
         for edge in F.edges:
             simplex1: set = set([edge.vertices[0], edge.vertices[1]])
             if(simplex1 not in filtration):
                 filtration.append(simplex1)
-                threshold_dict[len(filtration)] = threshold
+                threshold_dict[len(filtration)-1] = threshold
 
         for edge in F.edges:
             v1 = edge.vertices[0]
             v2 = edge.vertices[1]
             
             for v3 in F.vertices:
-                if(v1 != v3 and v2 != v3):
+                if(v1 in v3.neighbors and v2 in v3.neighbors):
                     edge1_3 = next(filter(lambda edge: set(edge.vertices) == set([v1,v3]), F.edges), None)
                     edge2_3 = next(filter(lambda edge: set(edge.vertices) == set([v2,v3]), F.edges), None)
                     if(edge1_3 and edge2_3):
                         simplex2: set = set([v1,v2,v3])
                         if(simplex2 not in filtration):
                             filtration.append(simplex2)
-
-        # division: int = (max//div)
-        # if(threshold%division < stepsize or threshold == 1):
-        #     if(path != "none"):
-        #         F.save(path+str(threshold)+".png", "threshold = "+str(threshold))
-                
-        # if(path != "none"):
-        #     F.save(path+str(threshold)+".png", "threshold = "+str(threshold))
+                            threshold_dict[len(filtration)-1] = threshold
 
         endsize: int = len(filtration)
         if(startsize == endsize):
@@ -226,7 +189,7 @@ def my_filtration_sink(graph: Graph, path: str="none") -> tuple[list[set], dict]
         fsize = len(F.edges)+len(F.vertices)
         gsize = len(graph.edges)+len(graph.vertices)
         percent_done = fsize*100/gsize
-        print(str(fsize*100/gsize)+"%")
+        print(str(percent_done)+"%")
 
         startsize: int = len(filtration)
         for sink in sinks:
@@ -247,22 +210,28 @@ def my_filtration_sink(graph: Graph, path: str="none") -> tuple[list[set], dict]
             simplex0: set = set([vertex])
             if(simplex0 not in filtration):
                 filtration.append(simplex0)
-                threshold_dict[len(filtration)] = threshold
+                threshold_dict[len(filtration)-1] = threshold
    
 
         for edge in F.edges:
             simplex1: set = set([edge.vertices[0], edge.vertices[1]])
             if(simplex1 not in filtration):
                 filtration.append(simplex1)
-                threshold_dict[len(filtration)] = threshold
+                threshold_dict[len(filtration)-1] = threshold
 
-        # division: int = (max//div)
-        # if(threshold%division < stepsize or threshold == 1):
-        #     if(path != "none"):
-        #         F.save(path+str(threshold)+".png", "threshold = "+str(threshold))
-                
-        # if(path != "none"):
-        #     F.save(path+str(threshold)+".png", "threshold = "+str(threshold))
+        for edge in F.edges:
+            v1 = edge.vertices[0]
+            v2 = edge.vertices[1]
+            
+            for v3 in F.vertices:
+                if(v1 in v3.neighbors and v2 in v3.neighbors):
+                    edge1_3 = next(filter(lambda edge: set(edge.vertices) == set([v1,v3]), F.edges), None)
+                    edge2_3 = next(filter(lambda edge: set(edge.vertices) == set([v2,v3]), F.edges), None)
+                    if(edge1_3 and edge2_3):
+                        simplex2: set = set([v1,v2,v3])
+                        if(simplex2 not in filtration):
+                            filtration.append(simplex2)
+                            threshold_dict[len(filtration)-1] = threshold
 
         endsize: int = len(filtration)
         if(startsize == endsize):
@@ -338,8 +307,26 @@ def discrete_morse_filtration(graph: Graph, path: str="none") -> tuple[list[set]
                 filtration.append(simplex1)
                 threshold_dict[len(filtration)] = threshold
 
+        for edge in F.edges:
+            v1 = edge.vertices[0]
+            v2 = edge.vertices[1]
+            
+            for v3 in F.vertices:
+                if(v1 in v3.neighbors and v2 in v3.neighbors):
+                    edge1_3 = next(filter(lambda edge: set(edge.vertices) == set([v1,v3]), F.edges), None)
+                    edge2_3 = next(filter(lambda edge: set(edge.vertices) == set([v2,v3]), F.edges), None)
+                    if(edge1_3 and edge2_3):
+                        simplex2: set = set([v1,v2,v3])
+                        if(simplex2 not in filtration):
+                            filtration.append(simplex2)
+                            threshold_dict[len(filtration)-1] = threshold
+
         if(path != "none"):
             F.save(path+str(threshold)+".png", "threshold = "+str(threshold))
+
+    for i in range(len(filtration)+1):
+        if(i not in threshold_dict):
+            threshold_dict[i] = threshold_dict[i-1]
 
     return(filtration, threshold_dict)
     

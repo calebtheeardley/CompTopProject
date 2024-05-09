@@ -5,13 +5,13 @@ class Vertex:
         self.type = type
         self.unique_id = self.label +"_"+ self.id
         self.weight = None
-        
+        self.neighbors = []
+
+        #gets position of vertex
         cell: int = int(self.label)
         y:int = (int((cell - 1) / width + 1))
         x:int = int(cell - (y - 1) * width)
         y = -y
-
-        # X: float = (width - y) * 1 + 
         self.pos = (x,y)
 
     def __lt__(self, other):

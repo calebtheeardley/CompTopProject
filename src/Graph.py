@@ -42,8 +42,8 @@ class Graph:
                     distances[neighbor.unique_id] = distance
                     heapq.heappush(priority_queue, (distance, neighbor))
 
-        return float('inf')  # No path found
-
+        return float('inf')
+    
     def print(self):
         plt.close()
         G = nx.Graph() 
@@ -66,8 +66,7 @@ class Graph:
                 color = 'red'
             elif(vertex.type == "SINK"):
                 color = 'blue'
-            # else:
-            #     color = 'black'
+
             vertex_colors[vertex.unique_id] = color
 
         for edge in self.edges:
@@ -102,8 +101,7 @@ class Graph:
                 color = 'red'
             elif(vertex.type == "SINK"):
                 color = 'blue'
-            # else:
-            #     color = 'black'
+                
             vertex_colors[vertex.unique_id] = color
 
         for edge in self.edges:

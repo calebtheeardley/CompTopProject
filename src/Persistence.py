@@ -3,6 +3,7 @@ import numpy as np
 # import matplotlib
 import matplotlib.pyplot as plt
 # matplotlib.use("QtAgg")
+from persim import wasserstein
 
 def low(matrix: np.matrix, collumn: int):
     rows: int = matrix.shape[0]
@@ -62,7 +63,7 @@ def compute_persistence(matrix: np.matrix):
             else:
                 j2 += 1
 
-def generate_persistence_diagram(matrix:np.matrix, threshold_dict: dict, title: str="Persistence Diagram"):
+def generate_persistence_diagram(matrix:np.matrix, filtration: list[set], threshold_dict: dict, dimensions:list[int]=[1,2,3], title: str="Persistence Diagram"):
     plt.close()
     collumns: int = matrix.shape[1]
 
@@ -71,7 +72,7 @@ def generate_persistence_diagram(matrix:np.matrix, threshold_dict: dict, title: 
 
     for j in range(collumns):
         collumn_low: int = low(matrix=matrix, collumn=j)
-        if(collumn_low >= 0):
+        if(collumn_low >= 0 and len(filtration[collumn_low]) in dimensions):
             x.append(threshold_dict[collumn_low])
             y.append(threshold_dict[j])
 
@@ -79,7 +80,6 @@ def generate_persistence_diagram(matrix:np.matrix, threshold_dict: dict, title: 
     unique_points = set(points)
     counts = [points.count(p) for p in unique_points]
 
-    # Plot scatter plot with circles around replicated points
     plt.figure(figsize=(8, 6))
 
     for p, count in zip(unique_points, counts):
@@ -92,13 +92,15 @@ def generate_persistence_diagram(matrix:np.matrix, threshold_dict: dict, title: 
     plt.xlabel('Birth')
     plt.ylabel('Death')
     plt.title(title)
-    # plt.xlim(0, max(x))  # Example for setting x-axis limits
-    # plt.ylim(0, max(x))
-    # plt.xticks(np.arange(0, collumns-1, 1))  # Set tick positions at integers from 0 to 4
+    plt.xlim(0, max(threshold_dict.keys()))
+    plt.ylim(0, max(threshold_dict.keys()))
+    # plt.xticks(np.arange(0, collumns-1, 1))
     # plt.yticks(np.arange(0, collumns-1, 1))
 
     plt.show()
+    return(x,y)
 
+#This function does not operate correctly
 def generate_H0_Barcode(matrix: np.matrix, filtration: list[set], threshold_dict: dict, title:str = "Persistence Barcode"):
     plt.close()
     collumns: int = matrix.shape[1]
@@ -123,6 +125,7 @@ def generate_H0_Barcode(matrix: np.matrix, filtration: list[set], threshold_dict
     plt.title(title)
     plt.show()
 
+#This function does not operate correctly
 def generate_H1_Barcode(matrix: np.matrix, filtration: list[set], threshold_dict: dict, title:str = "Persistence Barcode"):
     plt.close()
     collumns: int = matrix.shape[1]
@@ -146,3 +149,16 @@ def generate_H1_Barcode(matrix: np.matrix, filtration: list[set], threshold_dict
     plt.yticks([])
     plt.title(title)
     plt.show()
+
+def wassersteinDistence(points_1:tuple[list,list], points_2:tuple[list,list]):
+    persistence_points_1 = []
+    persistence_points_2 = []
+
+    for i in range(len(points_1[0])):
+        persistence_points_1.append((points_1[0][i],points_1[1][i]))
+
+    for i in range(len(points_2[0])):
+        persistence_points_2.append((points_2[0][i],points_2[1][i]))
+
+    WD = wasserstein(persistence_points_1, persistence_points_2)
+    return WD
